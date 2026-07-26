@@ -1,11 +1,18 @@
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.14)
 
 project(nivlr)
+
+# CPM-provided packages (built from source)
+include(cmake/CPM.cmake)
+CPMAddPackage(
+    NAME raylib
+    GITHUB_REPOSITORY raysan5/raylib
+    GIT_TAG 6.0
+)
 
 if (UNIX)
     set(CMAKE_C_COMPILER "/usr/bin/clang")
     set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
-    find_package (raylib 4.0 REQUIRED)
 endif()
 
 if (EMSCRIPTEN)
@@ -26,3 +33,10 @@ if (EMSCRIPTEN)
 else()
     target_link_libraries(${PROJECT_NAME} raylib)
 endif()
+
+add_custom_command(TARGET nivlr POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E create_symlink
+        ${CMAKE_CURRENT_SOURCE_DIR}/res
+        ${CMAKE_CURRENT_BINARY_DIR}/res
+    COMMENT "Symlinking resources"
+)
