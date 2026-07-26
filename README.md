@@ -27,7 +27,11 @@ First, install clang and cmake to build Noctis IV LR:
 ```
 sudo apt-get install clang cmake
 ```
-Next, you should be able to simply build the program:
+Next, install the libraries required by Raylib:
+```
+libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxinerama-dev libwayland-dev libxkbcommon-dev
+```
+Finally, you should be able to simply build the program:
 ```
 cmake . -DCMAKE_C_COMPILER="/usr/bin/clang" -DCMAKE_CXX_COMPILER="/usr/bin/clang++"
 make
