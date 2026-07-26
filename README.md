@@ -20,18 +20,14 @@ Noctis IV LR runs on both Linux and Windows.
 There is a semi-functional [web demo](https://dgcole.github.io/noctis-iv-lr/web/nivlr.html). This demo is not necessarily up to date, and should not be taken as representative of the stability of this port. A web version is not an end goal, and it is only around to quickly demonstrate things.
 
 ## Compiling
-The only strict dependency of Noctis IV LR is SDL2.
+The only strict dependency of Noctis IV LR is Raylib. In the provides [CMakeLists.txt](./CMakeLists.txt) file, CPM is used to include Raylib and build it from source.
 ### Linux
 The package installation instructions are only provided for Ubuntu. It is assumed that if you are using another distro you are experienced enough to figure things out yourself.
-First, install SDL2.
-```
-sudo apt-get install libsdl2-dev
-```
-Then make sure all of the programs needed to build Noctis IV LR are installed.
+First, install clang and cmake to build Noctis IV LR:
 ```
 sudo apt-get install clang cmake
 ```
-Finally, build the program.
+Next, you should be able to simply build the program:
 ```
 cmake . -DCMAKE_C_COMPILER="/usr/bin/clang" -DCMAKE_CXX_COMPILER="/usr/bin/clang++"
 make
