@@ -9,6 +9,11 @@ CPMAddPackage(
     GITHUB_REPOSITORY raysan5/raylib
     GIT_TAG 6.0
 )
+CPMAddPackage(
+    NAME glm
+    GITHUB_REPOSITORY g-truc/glm
+    GIT_TAG 1.0.3
+)
 
 if (UNIX)
     set(CMAKE_C_COMPILER "/usr/bin/clang")
@@ -32,6 +37,7 @@ if (EMSCRIPTEN)
     target_link_libraries(${PROJECT_NAME} /home/dcole/Projects/raylib/src/libraylib.a)
 else()
     target_link_libraries(${PROJECT_NAME} raylib)
+    target_link_libraries(${PROJECT_NAME} glm::glm)
 endif()
 
 add_custom_command(TARGET nivlr POST_BUILD
