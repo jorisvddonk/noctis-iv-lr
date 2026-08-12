@@ -79,6 +79,8 @@
 #include <cstring>
 #include <cmath>
 #include <cstdarg>
+#include <unistd.h>
+#include <sys/wait.h>
 
 #include "brtl.h"
 #include "noctis-d.h"
@@ -485,6 +487,14 @@ static int cmd_planet(int argc, char **argv)
 	return 0;
 }
 
+/* Flush every output stream so a fork()ed child never duplicates buffered text. */
+static void flush_out(void)
+{
+	if (g_out)
+		fflush(g_out);
+	fflush(stdout);
+}
+
 static int cmd_planet_all(int argc, char **argv)
 {
 	double x = argd(argc, argv, "-x", 0);
@@ -493,19 +503,44 @@ static int cmd_planet_all(int argc, char **argv)
 
 	gen_system(x, y, z);
 	out("=== PLANET TEXTURES (all %d bodies) ===\n", nearstar_nob);
+	flush_out();
+	int skipped = 0;
 	for (int n = 0; n < nearstar_nob; n++) {
-		int is_moon = (nearstar_p_owner[n] > -1);
-		gen_planet_surface(n);
-		uint8_t *surf = is_moon ? s_background : p_background;
-		nh_u32 surf_fnv = nh_fnv1a(surf, 46080UL);
-		nh_u32 atmo_fnv = nh_fnv1a((uint8_t *)objectschart, 32400UL);
-		int base3 = (is_moon ? 128 : 192) * 3;
-		nh_u32 pal_fnv = nh_fnv1a((uint8_t *)(tmppal + base3), 192UL);
-		out("PLANET %d type=%d is_moon=%d surf=%08lX atmo=%08lX pal=%08lX\n",
-		    n, (int)nearstar_p_type[n], is_moon,
-		    (unsigned long)surf_fnv, (unsigned long)atmo_fnv,
-		    (unsigned long)pal_fnv);
+		flush_out();
+		pid_t pid = fork();
+		if (pid == 0) {
+			/* Child: generate ONLY this body. A crash (e.g. segfault)
+			   only kills this child; the parent skips and continues. */
+			int is_moon = (nearstar_p_owner[n] > -1);
+			gen_planet_surface(n);
+			uint8_t *surf = is_moon ? s_background : p_background;
+			nh_u32 surf_fnv = nh_fnv1a(surf, 46080UL);
+			nh_u32 atmo_fnv = nh_fnv1a((uint8_t *)objectschart, 32400UL);
+			int base3 = (is_moon ? 128 : 192) * 3;
+			nh_u32 pal_fnv = nh_fnv1a((uint8_t *)(tmppal + base3), 192UL);
+			out("PLANET %d type=%d is_moon=%d surf=%08lX atmo=%08lX pal=%08lX\n",
+			    n, (int)nearstar_p_type[n], is_moon,
+			    (unsigned long)surf_fnv, (unsigned long)atmo_fnv,
+			    (unsigned long)pal_fnv);
+			flush_out();
+			_exit(0);
+		} else if (pid > 0) {
+			int status;
+			waitpid(pid, &status, 0);
+			if (WIFSIGNALED(status)) {
+				out("; body %d crashed (signal %d), skipping\n", n, WTERMSIG(status));
+				skipped++;
+			} else if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
+				out("; body %d exited with status %d, skipping\n", n, WEXITSTATUS(status));
+				skipped++;
+			}
+		} else {
+			out("; fork failed for body %d, skipping\n", n);
+			skipped++;
+		}
 	}
+	flush_out();
+	(void)skipped;
 	return 0;
 }
 
