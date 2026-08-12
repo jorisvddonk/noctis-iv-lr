@@ -29,6 +29,10 @@ set(SOURCE_FILES src/noctis.cpp src/noctis-1.cpp src/noctis-0.cpp src/brtl.cpp)
 
 add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
+# Headless generation harness (emits spec-compliant hash output + dumps).
+# Links the generation modules but NOT the game main (noctis.cpp).
+add_executable(nivtest src/harness.cpp src/harness_stubs.cpp src/noctis-0.cpp src/noctis-1.cpp src/brtl.cpp)
+
 if (EMSCRIPTEN)
     # PLEASE NOTE: If you are trying to build a WASM version of this yourself, you will
     # have to manually build a WASM version of Raylib and touch up the paths below.
@@ -39,6 +43,9 @@ else()
     target_link_libraries(${PROJECT_NAME} raylib)
     target_link_libraries(${PROJECT_NAME} glm::glm)
 endif()
+
+target_link_libraries(nivtest raylib)
+target_link_libraries(nivtest glm::glm)
 
 add_custom_command(TARGET nivlr POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E create_symlink

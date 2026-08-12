@@ -56,6 +56,29 @@ Build instructions are not currently provided for Windows, but it can be built b
 
 The checklist serves to give a good overview, but there are too many minor quirks to mention here. For example, I don't actually have the faintest idea what framerate the game is supposed to run at and there are a lot of timing issues.
 
+## Generation output harness (`nivtest`)
+
+The `nivtest` executable drives the generation code headlessly and emits
+hash fingerprints and binary dumps for every generated artifact (solar
+systems, planet textures, surface sectors, surface textures/sky), so output
+can be verified against reference engines.
+
+```sh
+cmake --build build --target nivtest
+build/nivtest selftest
+build/nivtest system   -x 191792 -y 6793743 -z -1527697
+build/nivtest scan     -x 191792 -y 6793743 -z -1527697
+build/nivtest planet   -x 191792 -y 6793743 -z -1527697 -p 0
+build/nivtest planet-all -x 191792 -y 6793743 -z -1527697
+build/nivtest sector   -x -118928 -y 36846 -z -9517 -p 0 -lon 0 -lat 60
+build/nivtest surftex  -x -118928 -y 36846 -z -9517 -p 0 -lon 0 -lat 60
+```
+
+Options: `-o <FILE>` (append text output), `-dump <DIR>` (C-style lowercase
+binary dumps), `NIVDUMP=<DIR>` (Rust-style uppercase dumps), `-secs <n>`
+(deterministic time counter), and `-gap <32hex>` on `sector`/`surftex` to
+replay the C harness gap bytes. See `src/harness.cpp` for the full contract.
+
 ## Differences from Vanilla
 * SUPPORTS.NCT is loaded from the res/ folder instead of being appended to the binary.
 * Fixed a bug with triads dexter above 1000. 
