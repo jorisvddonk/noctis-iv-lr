@@ -467,6 +467,7 @@ static void report_planet(int n)
 	/* C-style lowercase dumps. */
 	dump_file("surfmap.bin", surf, 64800UL);
 	dump_file("atmover.bin", (uint8_t *)objectschart, 32400UL);
+	dump_file("palette.raw", (uint8_t *)tmppal, 768UL);
 }
 
 static int cmd_planet(int argc, char **argv)
