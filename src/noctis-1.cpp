@@ -1653,8 +1653,20 @@ void round_hill(int16_t cx, int16_t cz, uint16_t r, float h, float hmax, int8_t 
     float dx, dz, d;
     float y, v = (float) r / M_PI_2;
 
-    for (x = cx - r; x < cx + r; x++) {
-        for (z = cz - r; z < cz + r; z++) {
+    /* The C original takes `unsigned r` (16-bit in Borland), so `cx - r` is
+       evaluated in 16-bit unsigned arithmetic and the signed `int x` wraps.
+       The loop condition `x < cx + r` then promotes x back to unsigned, so
+       when cx < r the start value (0x10000 + cx - r) is greater than the end
+       value and the whole hill is SKIPPED. Reproduce that 16-bit unsigned
+       bound arithmetic exactly; using plain signed 32-bit arithmetic here
+       draws hills the reference never draws. */
+    int ux0 = (uint16_t) (cx - r), ux1 = (uint16_t) (cx + r);
+    int uz0 = (uint16_t) (cz - r), uz1 = (uint16_t) (cz + r);
+
+    for (int ux = ux0; ux < ux1; ux++) {
+        x = (int16_t) ux;
+        for (int uz = uz0; uz < uz1; uz++) {
+            z = (int16_t) uz;
             if (x > -1 && z > -1 && x < 200 && z < 200) {
                 dx = x - cx;
                 dz = z - cz;

@@ -152,10 +152,10 @@
 // Structure of a byte in the surface object map (objectschart).
 
 struct quadrant {
-    uint16_t nr_of_objects : 2;
-    uint16_t object0_class : 2;
-    uint16_t object1_class : 2;
-    uint16_t object2_class : 2;
+    uint8_t nr_of_objects : 2;
+    uint8_t object0_class : 2;
+    uint8_t object1_class : 2;
+    uint8_t object2_class : 2;
 };
 
 // Structure that identifies a polygon and its vertices for the PV functions.

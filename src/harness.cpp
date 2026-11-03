@@ -620,10 +620,14 @@ static void set_gap(const char *gap_hex)
 			gap[i] = (uint8_t)v;
 		}
 	} else {
-		/* Reference default (measured from the C harness under DOSBox-X):
-		   12 zero bytes + 0xC5 0x09 0xF0 0x54. */
+		/* Reference default: the derived Borland C++ 3.1 far-heap block
+		   header that sits between p_surfacemap and objectschart
+		   (12 alignment bytes + size-in-paragraphs 0x09C5 + the
+		   preceding segment 0x51E9). Reproduces the C oracle with no
+		   -gap injected for every body whose terrain does not itself
+		   scribble over the header. */
 		static const uint8_t def[16] = {0, 0, 0, 0, 0, 0, 0, 0,
-		                                0, 0, 0, 0, 0xC5, 0x09, 0xF0, 0x54};
+		                                0, 0, 0, 0, 0xC5, 0x09, 0xE9, 0x51};
 		for (int i = 0; i < 16; i++)
 			gap[i] = def[i];
 	}

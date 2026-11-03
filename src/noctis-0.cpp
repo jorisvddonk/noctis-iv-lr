@@ -3283,7 +3283,7 @@ void getsecs() {
 // information about the chosen star.
 
 void extract_ap_target_infos() {
-    brtl_srand((uint16_t) (ap_target_x / 100000 * ap_target_y / 100000 * ap_target_z / 100000));
+    brtl_srand((uint16_t) ((int64_t) (ap_target_x / 100000 * ap_target_y / 100000 * ap_target_z / 100000)));
     ap_target_class = brtl_random(star_classes);
     ap_target_ray   = ((float) class_ray[ap_target_class] + (float) brtl_random(class_rayvar[ap_target_class])) * 0.001;
     ap_target_r     = class_rgb[3 * ap_target_class + 0];
@@ -4191,7 +4191,7 @@ void surface(int16_t logical_id, int16_t type, double seedval, uint8_t colorbase
      * rotation of the planet, in degrees, from 0 to 359. The rotation period is
      * extracted in a very wide range, with 1 second resolution.
      */
-    fast_srand(((int32_t) (uint32_t) seedval) + 4112);
+    fast_srand((int32_t)(uint32_t)(int64_t)(seedval + 4112.0));
 
     /* "rtperiod" is the time, in seconds, that it takes the planet to rotate
      * one degree on its axis. The time taken for a complete rotation is
@@ -4221,7 +4221,7 @@ void surface(int16_t logical_id, int16_t type, double seedval, uint8_t colorbase
      * NOTE: The above comment is preserved for posterity, but its statements on
      * the standard library random functions are not necessarily accurate.
      */
-    fast_srand((int32_t) (uint32_t) (seedval * 10));
+    fast_srand((int32_t)(uint32_t)(int64_t)(seedval * 10.0));
     seed = fast_random(0xFFFF);
 
     /* Preparation of a standard surface (random pattern 0 .. 62): it is then
@@ -4759,7 +4759,7 @@ void ring(int16_t planet_id, double ox, double oy, double oz, int16_t start, int
     double ringray  = nearstar_p_ring[planet_id];
     double ringtilt = 0.1 * ringray * nearstar_p_tilt[planet_id];
     double interval = 0.0075 * ringray;
-    fast_srand((int32_t) (10000 * ringray + planet_id));
+    fast_srand((int32_t)(uint32_t)(int64_t)(10000 * ringray + planet_id));
     b       = 1 + fast_random(0x1F) - layers;
     partcls = 1 + fast_random(3);
 
@@ -5090,7 +5090,7 @@ void draw_planets() {
                         crepzone     = te_ll_distance;
                     }
 
-                    fast_srand((int32_t) (nearstar_p_orb_seed[n] * nearstar_p_orb_ecc[n] * 12345));
+                    fast_srand((int32_t)(uint32_t)(int64_t)(nearstar_p_orb_seed[n] * nearstar_p_orb_ecc[n] * 12345));
                     ptr            = 360 * landing_pt_lat + landing_pt_lon;
                     sky_red_filter = fast_random(31) + 32;
                     sky_grn_filter = fast_random(15) + 48;
