@@ -1863,13 +1863,12 @@ void asterism(uint8_t *map, int16_t x, int16_t y, int16_t base, int16_t variatio
                    `sin(pi)*4.417 + 57` round back to exactly 57.0f instead of
                    truncating to 56, which shifts every asterism pixel by a
                    row. Cast to double explicitly. */
-                /* Borland's x87 FSIN computes sin at 80-bit and arrives at
-                   exactly 1.0 for an argument one ULP past pi/2, whereas the
-                   double sin() returns 0.999999999999999 — a difference that
-                   truncates one row off. sinf() reproduces the reference; cos
-                   must stay double (cosf gives the wrong column). */
+                /* Match the reference exactly: double sin, double cos (an
+                   earlier sinf() attempt compensated for one case but broke
+                   others — capturing the operand the reference actually uses
+                   showed plain double sin). */
                 shift_x = cos((double) ang) * (double) shift_d + x;
-                shift_y = (int32_t) ((double) sinf(ang) * (double) shift_d + (double) y);
+                shift_y = sin((double) ang) * (double) shift_d + y;
 
                 if (shift_x > 0 && shift_y > 0 && shift_x < align && shift_y < align) {
                     shift_p      = shift_y * align + shift_x;
