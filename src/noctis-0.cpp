@@ -3413,8 +3413,14 @@ void prepare_nearstar() {
     for (n = 0; n < nearstar_nop; n++) {
         nearstar_p_owner[n]      = -1;
         nearstar_p_orb_orient[n] = (double) deg * (double) brtl_random(360);
+        /* C: random ((int)(300 * nearstar_ray)) with the product evaluated at
+           double precision. Doing `300 * nearstar_ray` in f32 rounds
+           1304.99997 up to 1305.0f, which selects a different random() range
+           and shifts orb_seed by 0.01 for the ~0.6% of bodies whose product
+           sits just under an integer. */
         nearstar_p_orb_seed[n] =
-            3.0 * (n * n + 1) * nearstar_ray + (float) brtl_random((int16_t) (300 * nearstar_ray)) / 100.0;
+            3.0 * (n * n + 1) * nearstar_ray
+            + (double) brtl_random((int16_t) (300.0 * (double) nearstar_ray)) / 100.0;
         nearstar_p_tilt[n]     = zrandom((int16_t) (10 * nearstar_p_orb_seed[n])) / 500.0;
         nearstar_p_orb_tilt[n] = zrandom((int16_t) (10 * nearstar_p_orb_seed[n])) / 5000.0;
         nearstar_p_orb_ecc[n] =
