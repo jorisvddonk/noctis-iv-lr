@@ -304,13 +304,15 @@ void psmooth_grays(uint8_t *target) {
         temp &= 0xFCFCFCFC;
         temp >>= 2u;
 
+        /* C asm: al = dl ; add al,dh ; shr dx,16 ; add al,dl ; add al,dh ;
+           shr al,2 -- i.e. sum the FOUR bytes of the dword. The old code did
+           `+= temp & 0xFF00` on a uint8_t, which contributes 0, so only two
+           of the four bytes were averaged. */
         smoothed = temp & 0xFFu;
-        smoothed += temp & 0xFF00u;
-
+        smoothed += (temp >> 8u) & 0xFFu;
         temp >>= 16u;
-
         smoothed += temp & 0xFFu;
-        smoothed += temp & 0xFF00u;
+        smoothed += (temp >> 8u) & 0xFFu;
         smoothed >>= 2u;
         target[index + 320] = smoothed;
     }

@@ -1899,15 +1899,21 @@ rndpat:
     if (tcx != 0)
         goto rndpat;
 
+    #define SKYD(tag) do { const char *d_ = getenv("SKYTRACE_DUMP"); if (d_) { char p_[1024]; snprintf(p_, sizeof p_, "%s/neb_%s.bin", d_, tag); if (FILE *f_ = fopen(p_, "wb")) { fwrite(s_background, 1, st_bytes, f_); fclose(f_); } } } while (0)
+    SKYD("0pat");
     lssmooth(s_background);
+    SKYD("1lssmooth");
 
     if (brtl_random(2)) {
         ssmooth(s_background);
     }
+    SKYD("2ssmooth");
 
     if (brtl_random(3)) {
         psmooth_grays(s_background);
     }
+    SKYD("3psmooth");
+    #undef SKYD
 
     QUADWORDS = pqw;
 }
