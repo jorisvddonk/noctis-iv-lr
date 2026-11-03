@@ -1745,12 +1745,15 @@ void std_crater(uint8_t *map, int16_t cx, int16_t cz, int16_t r, int16_t lim_h, 
             if (x > -1 && z > -1 && x < align && z < align) {
                 dx = x - cx;
                 dz = z - cz;
-                d  = sqrt(dx * dx + dz * dz);
+                /* x87 keeps 80-bit intermediates inside one expression; on
+                   arm64 every float op rounds to 32 bits. Evaluate the whole
+                   expression in double and round once, as the reference does. */
+                d  = (float) sqrt((double) dx * (double) dx + (double) dz * (double) dz);
 
                 if (d <= fr) {
-                    y = sin(M_PI * (d / fr)) * h;
-                    y = pow(y, h_raiser);
-                    y += map[align * (int32_t) z + x];
+                    y = (float) (sin(M_PI * ((double) d / (double) fr)) * (double) h);
+                    y = (float) pow((double) y, (double) h_raiser);
+                    y = (float) ((double) y + (double) map[align * (int32_t) z + x]);
 
                     if (y < 0) {
                         y = 0;
