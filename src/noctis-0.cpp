@@ -296,7 +296,7 @@ void psmooth_grays(uint8_t *target) {
                 target[index + 320];
 
         temp += (target[index + 643] << 24u) + (target[index + 642] << 16u) + (target[index + 641] << 8u) +
-                target[index + 641];
+                target[index + 640];
 
         temp += (target[index + 963] << 24u) + (target[index + 962] << 16u) + (target[index + 961] << 8u) +
                 target[index + 960];
