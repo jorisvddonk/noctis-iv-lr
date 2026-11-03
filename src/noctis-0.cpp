@@ -4169,8 +4169,13 @@ void atm_cyclon() {
 void storm() { // tempesta (una grande macchia chiara sull'atmosfera).
     for (g = 1; g < cr; g++) {
         for (a = 0; a < 2 * M_PI; a += 4 * deg) {
-            px = (uint16_t) (cx + (int16_t) (g * cos((double) a)));
-            py = (uint16_t) (cy + (int16_t) (g * sin((double) a)));
+            /* C: px = cx + (int)(g*cos(a)). Borland's double->int store uses
+               the x87 rounding mode, and the reference (matched by the Rust
+               port) behaves as if the WHOLE sum is truncated, i.e.
+               (int)(cx + g*cos(a)). Truncating the product first differs by
+               one pixel whenever g*cos(a) is negative and fractional. */
+            px = (uint16_t) (int32_t) (trunc((double) cx + (double) g * cos((double) a)));
+            py = (uint16_t) (int32_t) (trunc((double) cy + (double) g * sin((double) a)));
             py *= 360;
             cirrus();
         }
@@ -4619,6 +4624,14 @@ void surface(int16_t logical_id, int16_t type, double seedval, uint8_t colorbase
      * atmosphere doesn't have an effect on the appearance of the underlying
      * surface, then for Felisian / Mars-like planets.
      */
+    if (const char *sdump = getenv("SURFSTAGE")) {
+        char path[1024];
+        snprintf(path, sizeof path, "%s/bg.bin", sdump);
+        if (FILE *f = fopen(path, "wb")) { fwrite(p_background, 1, 64800, f); fclose(f); }
+        snprintf(path, sizeof path, "%s/oc.bin", sdump);
+        if (FILE *f = fopen(path, "wb")) { fwrite(overlay, 1, 32400, f); fclose(f); }
+    }
+
     if (type == 3 || type == 5) {
         for (px = 0; px < 64800; px++) {
             p_background[px] >>= 1u;
