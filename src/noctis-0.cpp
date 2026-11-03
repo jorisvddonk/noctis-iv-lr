@@ -4393,11 +4393,20 @@ void surface(int16_t logical_id, int16_t type, double seedval, uint8_t colorbase
                 auto resultHigh = static_cast<int16_t>(result >> 16u);
                 auto resultLow  = static_cast<int16_t>(result & 0xFFFFu);
                 currSeed        = resultLow + resultHigh;
-                uint8_t color   = currSeed & 0xFFu;
-                color &= 0x3Eu;
-                p_background[j] = color;
-                if (p_background[j] > 0x3E) {
+                /* C asm: add es:[di], bl  -- it ADDS the pattern byte to the
+                   existing pixel (lr was assigning it), then
+                     cmp byte es:[di], 0x3E ; jb mare
+                     mov word ptr es:[di], 0x3E
+                   i.e. on >= 0x3E it stores the WORD 0x003E, which also
+                   clears the following byte. */
+                uint8_t bl      = currSeed & 0x3Eu;
+                p_background[j] = (uint8_t) (p_background[j] + bl);
+
+                if (p_background[j] >= 0x3E) {
                     p_background[j] = 0x3E;
+                    if (j + 1 < 64800) {
+                        p_background[j + 1] = 0x00;
+                    }
                 }
             } else {
                 p_background[j] = 16;
