@@ -4592,7 +4592,10 @@ void surface(int16_t logical_id, int16_t type, double seedval, uint8_t colorbase
         break;
 
     case 9:
-        memset(adapted, 0x1F, QUADWORDS * 4);
+        /* C: pclear (p_background, 0x1F). `adapted` is only allocated by the
+           interactive main(); the headless harness leaves it NULL, which made
+           every substellar (type 9) body segfault. */
+        memset(p_background, 0x1F, QUADWORDS * 4);
 
         for (px = 0; px < 32400; px++) {
             overlay[px] = 0x1F;
