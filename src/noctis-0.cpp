@@ -4168,7 +4168,11 @@ void atm_cyclon() {
 
     while (cr > 0) {
         px = (uint16_t) (int32_t) ((double) cx + (double) cr * cos((double) a));
-        py = (uint16_t) (int32_t) ((double) cy + (double) cr * sin((double) a));
+        /* Round the product before adding (see asterism): a fused
+           multiply-add keeps cr*sin(a) at infinite precision and flips the
+           truncation at integer boundaries. */
+        double _csy = (double) cr * sin((double) a);
+        py = (uint16_t) (int32_t) (_csy + (double) cy);
         py *= 360;
         cirrus();
         px += brtl_random(4);

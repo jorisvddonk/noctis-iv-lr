@@ -1867,8 +1867,14 @@ void asterism(uint8_t *map, int16_t x, int16_t y, int16_t base, int16_t variatio
                    earlier sinf() attempt compensated for one case but broke
                    others — capturing the operand the reference actually uses
                    showed plain double sin). */
-                shift_x = cos((double) ang) * (double) shift_d + x;
-                shift_y = sin((double) ang) * (double) shift_d + y;
+                /* Round the product before adding, so the compiler cannot
+                   contract the expression into an FMA (which keeps the
+                   product at infinite precision and flips the truncation at
+                   integer boundaries). */
+                double _ax = cos((double) ang) * (double) shift_d;
+                double _ay = sin((double) ang) * (double) shift_d;
+                shift_x = (int32_t) (_ax + (double) x);
+                shift_y = (int32_t) (_ay + (double) y);
 
                 if (shift_x > 0 && shift_y > 0 && shift_x < align && shift_y < align) {
                     shift_p      = shift_y * align + shift_x;
