@@ -3997,7 +3997,9 @@ void fracture(uint8_t *target, float max_latitude) {
            the store. Casting the RHS to float first loses bits and shifts the
            crack path. */
         a = (float) ((double) a + (double) (brtl_random(g) - brtl_random(g)) * deg); // NOLINT(misc-redundant-expression)
-        px += kfract * cos(a);
+        /* cos(a) with a float argument resolves to the C++ float overload,
+           which truncates the step; C promotes to double. */
+        px += kfract * cos((double) a);
 
         if (px > 359) {
             px -= 360;
@@ -4326,6 +4328,7 @@ void surface(int16_t logical_id, int16_t type, double seedval, uint8_t colorbase
             volcano();
         }
 
+        { const char *d_ = getenv("C0D"); if (d_) { char q_[1024]; snprintf(q_, sizeof q_, "%s/a1_volcano.bin", d_); if (FILE *f_=fopen(q_,"wb")) { fwrite(p_background,1,64800,f_); fclose(f_);} } }
         r = 100 + ranged_fast_random(100);
         b = ranged_fast_random(3) + 1;
         g = 360;
@@ -4336,6 +4339,7 @@ void surface(int16_t logical_id, int16_t type, double seedval, uint8_t colorbase
             gr = ranged_fast_random(100);
             fracture(p_background, 180);
         }
+        { const char *d_ = getenv("C0D"); if (d_) { char q_[1024]; snprintf(q_, sizeof q_, "%s/a2_fracture.bin", d_); if (FILE *f_=fopen(q_,"wb")) { fwrite(p_background,1,64800,f_); fclose(f_);} } }
 
         lssmooth(p_background);
         break;
