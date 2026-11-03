@@ -3830,8 +3830,12 @@ void ssmooth(uint8_t *target) {
 
 /* Smooth the surface of a planet slightly: 2x2 average. */
 void lssmooth(uint8_t *target) {
-    // Offset limit by additional -1 because valgrind told me this ran over.
-    uint32_t limit = ((((uint32_t) QUADWORDS) - 80) << 2u) - 1;
+    /* C asm: mov cx,QUADWORDS ; shl cx,2 ; mov ax,80 ; shl ax,2 ; sub cx,ax
+       -> exactly (QUADWORDS*4 - 80*4) iterations. The historical `- 1`
+       (added because valgrind flagged the read past st_bytes) skipped the
+       last pixel; the read is legitimate in the reference (the far-heap tail
+       is modelled, see harness.cpp), so iterate the full count. */
+    uint32_t limit = (((uint32_t) QUADWORDS) - 80) << 2u;
 
     for (uint32_t i = 0; i < limit; i++) {
         uint8_t sample = target[i] & 0xC0u;
