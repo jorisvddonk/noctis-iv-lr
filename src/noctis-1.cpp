@@ -1856,12 +1856,20 @@ void asterism(uint8_t *map, int16_t x, int16_t y, int16_t base, int16_t variatio
             color = base;
 
             while (shift_d > 0) {
-                shift_x = cos(ang) * shift_d + x;
-                shift_y = sin(ang) * shift_d + y;
+                /* IMPORTANT: in C++ <cmath> `sin(float)`/`cos(float)` are the
+                   FLOAT overloads, so the whole expression is evaluated in
+                   single precision. The C original promotes to double and
+                   computes in 80-bit. Using the float overloads makes
+                   `sin(pi)*4.417 + 57` round back to exactly 57.0f instead of
+                   truncating to 56, which shifts every asterism pixel by a
+                   row. Cast to double explicitly. */
+                shift_x = cos((double) ang) * (double) shift_d + x;
+                shift_y = sin((double) ang) * (double) shift_d + y;
 
                 if (shift_x > 0 && shift_y > 0 && shift_x < align && shift_y < align) {
                     shift_p      = shift_y * align + shift_x;
                     map[shift_p] = color;
+                    if (getenv("ASTER_TRACE")) fprintf(stderr, "W %d %d | ang=%.9g sd=%.9g var=%.9g col=%.9g sin=%.12g cos=%.12g y=%d x=%d\n", (int) shift_p, (int) (uint8_t) color, (double) ang, (double) shift_d, (double) var, (double) color, sin((double) ang), cos((double) ang), (int) y, (int) x);
                 }
 
                 color += var;
