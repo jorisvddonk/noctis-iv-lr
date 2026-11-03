@@ -216,7 +216,24 @@ static int alloc_buffers(void)
 
 	/* p_background / s_background as main() allocates them. */
 	p_background = (uint8_t *)malloc(pl_bytes);
+	/* Same far-heap tail model as s_background below: lssmooth reads up to
+	   40 bytes past the 64800-byte map. */
+	if (p_background) {
+		memset(p_background, 0, pl_bytes);
+		memset(p_background + 64800, 0xFF, pl_bytes - 64800);
+	}
 	s_background = (uint8_t *)malloc(st_bytes + 64);
+	/* lssmooth reads target[i+361] with i up to QUADWORDS*4-320, i.e. up to
+	   40 bytes PAST st_bytes. That region is the next far-heap block in the
+	   DOS build, which farmalloc does not zero; DOSBox fills it with 0xFF
+	   (the Rust port models exactly this: make_bg() sets everything beyond
+	   64800 to 0xFF). Leaving it uninitialised made lr's map tail diverge,
+	   which desyncs randoface()'s RNG branch and shifted the type-7 moon
+	   palettes by two draws. */
+	if (s_background) {
+		memset(s_background, 0, (size_t) st_bytes);
+		memset(s_background + st_bytes, 0xFF, 64);
+	}
 	if (!p_background || !s_background)
 		return 0;
 

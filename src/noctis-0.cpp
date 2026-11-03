@@ -3841,6 +3841,7 @@ void lssmooth(uint8_t *target) {
 
         uint8_t bl = target[i + 360] & 0x3Fu;
         uint8_t bh = target[i + 361] & 0x3Fu;
+        if (i >= 64435 && i <= 64441 && getenv("LSTRACE")) fprintf(stderr, "LS i=%u t[i]=%d t[i+1]=%d t[i+360]=%d t[i+361]=%d\n", i, (int) target[i], (int) target[i+1], (int) target[i+360], (int) target[i+361]);
 
         uint8_t average = (dl + dh + bl + bh) / 4;
 
@@ -4595,6 +4596,7 @@ void surface(int16_t logical_id, int16_t type, double seedval, uint8_t colorbase
         for (c = 0; c < r; c++) {
             ssmooth(p_background);
         }
+        { const char *d_ = getenv("C7D"); if (d_) { char q_[1024]; snprintf(q_, sizeof q_, "%s/d1_ssmooth.bin", d_); if (FILE *f_=fopen(q_,"wb")) { fwrite(p_background,1,64800,f_); fclose(f_);} } }
 
         r = 10 + ranged_fast_random(50);
         g = 5 + ranged_fast_random(20);
@@ -4607,9 +4609,12 @@ void surface(int16_t logical_id, int16_t type, double seedval, uint8_t colorbase
             fracture(p_background, 180);
         }
 
+        { const char *d_ = getenv("C7D"); if (d_) { char q_[1024]; snprintf(q_, sizeof q_, "%s/d2_fracture.bin", d_); if (FILE *f_=fopen(q_,"wb")) { fwrite(p_background,1,64800,f_); fclose(f_);} } }
+
         if (ranged_fast_random(2)) {
             lssmooth(p_background);
         }
+        { const char *d_ = getenv("C7D"); if (d_) { char q_[1024]; snprintf(q_, sizeof q_, "%s/d3_lssmooth.bin", d_); if (FILE *f_=fopen(q_,"wb")) { fwrite(p_background,1,64800,f_); fclose(f_);} } }
 
         randoface(1 + ranged_fast_random(10), 1);
 
