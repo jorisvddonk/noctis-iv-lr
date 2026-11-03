@@ -3985,7 +3985,11 @@ void fracture(uint8_t *target, float max_latitude) {
     float py = cy;
 
     do {
-        a += (float) ((brtl_random(g) - brtl_random(g)) * deg); // NOLINT(misc-redundant-expression)
+        /* C: a += (random(g) - random(g)) * deg; -- the RHS is double and is
+           added to the float accumulator in double/80-bit, rounding once at
+           the store. Casting the RHS to float first loses bits and shifts the
+           crack path. */
+        a = (float) ((double) a + (double) (brtl_random(g) - brtl_random(g)) * deg); // NOLINT(misc-redundant-expression)
         px += kfract * cos(a);
 
         if (px > 359) {
@@ -4188,6 +4192,16 @@ void storm() { // tempesta (una grande macchia chiara sull'atmosfera).
  * diffused light and the reduced field at the edges of the globes). "colorbase"
  * is assigned to 192 for the planets, to 128 for the moons.
  */
+
+
+/* TEMP diagnostic: stage dumps for the type-4 surface path. */
+static void stage4_dump(const char *tag) {
+    const char *d = getenv("SURFSTAGE4");
+    if (!d) return;
+    char path[1024];
+    snprintf(path, sizeof path, "%s/%s.bin", d, tag);
+    if (FILE *f = fopen(path, "wb")) { fwrite(p_background, 1, 64800, f); fclose(f); }
+}
 
 void surface(int16_t logical_id, int16_t type, double seedval, uint8_t colorbase) {
     int16_t plwp, c;
@@ -4409,6 +4423,7 @@ void surface(int16_t logical_id, int16_t type, double seedval, uint8_t colorbase
         if (ranged_fast_random(2)) {
             ssmooth(p_background);
         }
+        stage4_dump("s1_ssmooth");
 
         for (uint16_t i = 64000, j = 0; i > 0; i--, j++) {
             if (p_background[j] == 32) {
@@ -4417,6 +4432,7 @@ void surface(int16_t logical_id, int16_t type, double seedval, uint8_t colorbase
                 p_background[j + 360] = 0x01;
             }
         }
+        stage4_dump("s2_lmrip");
 
         r = ranged_fast_random(30);
 
@@ -4433,14 +4449,17 @@ void surface(int16_t logical_id, int16_t type, double seedval, uint8_t colorbase
             gr = 50 + ranged_fast_random(100);
             fracture(p_background, 180);
         }
+        stage4_dump("s3_fracture");
 
         r = ranged_fast_random(25) + 1;
         crater_juice();
+        stage4_dump("s4_craterjuice");
         lssmooth(p_background);
 
         if (ranged_fast_random(2)) {
             lssmooth(p_background);
         }
+        stage4_dump("s5_lssmooth");
 
         break;
 
