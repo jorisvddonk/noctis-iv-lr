@@ -4010,7 +4010,16 @@ void fracture(uint8_t *target, float max_latitude) {
             py += max_latitude;
         }
 
-        uint16_t temp_vptr = px + (float) (360 * (uint16_t) py);
+        /* C: vptr = px + 360*(unsigned)py. px is float and 360*py is an
+           integer, so the addition happens at 80-bit and the result is only
+           truncated once when stored into the (16-bit unsigned) vptr. Doing
+           the add in f32 rounds 40588.998 up to 40589.0 and moves the crack
+           one column right. */
+        uint16_t temp_vptr = (uint16_t) (int32_t) ((double) px + (double) (360 * (uint16_t) py));
+        if (getenv("FRACTRACE")) {
+            fprintf(stderr, "F step=%d a=%.9g px=%.9g py=%.9g vptr=%u\n",
+                    (int) gr, (double) a, (double) px, (double) py, (unsigned) temp_vptr);
+        }
         target[temp_vptr] >>= (uint8_t) b;
         gr--;
     } while (gr);
