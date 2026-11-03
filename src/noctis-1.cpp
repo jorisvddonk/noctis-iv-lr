@@ -2401,8 +2401,13 @@ void build_surface() {
 
     // veniamo all'ambiente di superficie...
     // esso dipende strettamente dalle coordinate di sbarco.
-    fast_srand(landing_pt_lat * landing_pt_lon);
-    brtl_srand(landing_pt_lat * landing_pt_lon);
+    /* C: `landing_pt_lat * landing_pt_lon` is a 16-bit signed int product
+       (Borland int is 16 bits), which overflows for lat*lon >= 32768 and is
+       then sign-extended into fast_srand's 32-bit argument. Promoting to C's
+       32-bit int here leaves the product un-overflowed (e.g. 96*354 = 33984
+       instead of -31552), so the whole sector RNG diverges. */
+    fast_srand((int32_t) (int16_t) (landing_pt_lat * landing_pt_lon));
+    brtl_srand((uint16_t) (int16_t) (landing_pt_lat * landing_pt_lon));
 
     switch (nearstar_p_type[ip_targetted]) {
     // case 0: ATTUALMENTE non considerato: ? un pianeta vulcanico.
@@ -3201,8 +3206,13 @@ void build_surface() {
     // di arrotondamento, ecc...) l'orografia, per?, se cambia,
     // di certo cambia in minuscoli particolari, perch? si direbbe
     // generalmente costante.
-    fast_srand(landing_pt_lat * landing_pt_lon);
-    brtl_srand(landing_pt_lat * landing_pt_lon);
+    /* C: `landing_pt_lat * landing_pt_lon` is a 16-bit signed int product
+       (Borland int is 16 bits), which overflows for lat*lon >= 32768 and is
+       then sign-extended into fast_srand's 32-bit argument. Promoting to C's
+       32-bit int here leaves the product un-overflowed (e.g. 96*354 = 33984
+       instead of -31552), so the whole sector RNG diverges. */
+    fast_srand((int32_t) (int16_t) (landing_pt_lat * landing_pt_lon));
+    brtl_srand((uint16_t) (int16_t) (landing_pt_lat * landing_pt_lon));
 
     if ((int32_t) (nearstar_identity * 1E6) == -37828) {
         // Questa stella ? Balastrackonastreya
