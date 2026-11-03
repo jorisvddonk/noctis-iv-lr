@@ -4028,8 +4028,10 @@ void volcano() { // un krakatoa volcano con Gedeone il gigante coglione.
         b = gr;
 
         for (g = cr / 2; g < cr; g++) {
-            px = (uint16_t) (cx + cos((double) a) * g);
-            py = (uint16_t) (cy + sin((double) a) * g);
+            /* C: px = cx + cos(a)*g with px 16-bit unsigned, so a negative
+               sum wraps mod 65536; arm64's double->uint16 saturates. */
+            px = (uint16_t) (int32_t) ((double) cx + cos((double) a) * (double) g);
+            py = (uint16_t) (int32_t) ((double) cy + sin((double) a) * (double) g);
             py *= 360;
             spot();
             gr--;
