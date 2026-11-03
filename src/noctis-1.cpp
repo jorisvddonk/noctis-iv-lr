@@ -1670,11 +1670,15 @@ void round_hill(int16_t cx, int16_t cz, uint16_t r, float h, float hmax, int8_t 
             if (x > -1 && z > -1 && x < 200 && z < 200) {
                 dx = x - cx;
                 dz = z - cz;
-                d  = sqrt(dx * dx + dz * dz);
-                y  = cos(d / v) * h;
+                /* x87 evaluates dx*dx+dz*dz and cos(d/v)*h with 80-bit
+                   intermediates and rounds only once, at the store to the
+                   float destination. arm64 rounds every operation to 32 bits,
+                   so evaluate in double and round once. */
+                d  = (float) sqrt((double) dx * (double) dx + (double) dz * (double) dz);
+                y  = (float) (cos((double) d / (double) v) * (double) h);
 
                 if (y >= 0) {
-                    y += p_surfacemap[200 * (int32_t) z + x];
+                    y = (float) ((double) y + (double) p_surfacemap[200 * (int32_t) z + x]);
 
                     if (allowcanyons) {
                         if (y > 127) {

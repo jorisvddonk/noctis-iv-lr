@@ -3892,8 +3892,8 @@ void spot() {
 void permanent_storm() {
     for (g = 1; g < cr; g++) {
         for (a = 0; a < 2 * M_PI; a += 4 * deg) {
-            px = (uint16_t) (cx + g * cos((double) a));
-            py = (uint16_t) (cy + g * sin((double) a));
+            px = (uint16_t) (int32_t) ((double) cx + (double) g * cos((double) a));
+            py = (uint16_t) (int32_t) ((double) cy + (double) g * sin((double) a));
             py *= 360;
             spot();
         }
@@ -3906,8 +3906,11 @@ void crater() {
 
     for (a = 0; a < 2 * M_PI; a += 4 * deg) {
         for (gr = 0; gr < cr; gr++) {
-            px        = cx + cos((double) a) * gr;
-            py        = cy + sin((double) a) * gr;
+            /* C stores `cx + cos(a)*gr` into a 16-bit *unsigned* (px). On x87
+               that conversion wraps negatives modulo 65536; on arm64 clang
+               saturates them to 0. Go through int32 -> uint16 to wrap. */
+            px        = (uint16_t) (int32_t) ((double) cx + cos((double) a) * gr);
+            py        = (uint16_t) (int32_t) ((double) cy + sin((double) a) * gr);
             temp_vptr = px + 360 * py;
 
             uint8_t color       = p_background[temp_vptr];
@@ -3927,8 +3930,8 @@ void crater() {
 
             if (cy - b > 0 && cy + b < 179) {
                 for (gr = cr + 1; gr < b; gr++) {
-                    px        = cx + cos((double) a) * gr;
-                    py        = cy + sin((double) a) * gr;
+                    px        = (uint16_t) (int32_t) ((double) cx + cos((double) a) * gr);
+                    py        = (uint16_t) (int32_t) ((double) cy + sin((double) a) * gr);
                     temp_vptr = px + 360 * py;
 
                     uint8_t color = p_background[temp_vptr] + ((uint8_t) cr);
@@ -3958,7 +3961,13 @@ void band() {
 // A band, like the above but wavy.
 void wave() {
     for (uint16_t i = 360; i > 0; i--) {
-        py                  = ((uint16_t) round(cr * sin(a * i))) + cy;
+        /* C is inline asm: fild px; fmul a (80-bit); fsin; fmul cr;
+           fistp -> round-to-nearest-even into a 16-bit int. arm64's
+           round() is half-away-from-zero, and `a*i` in f32 loses bits,
+           so evaluate in double and use nearbyint (nearest-even). */
+        double s = sin((double) i * (double) a);
+        int32_t r = (int32_t) nearbyint(s * (double) cr);
+        py        = (uint16_t) (r + (int32_t) cy);
         uint16_t index      = ((uint16_t) (py * 360)) + i;
         p_background[index] = 0;
     }
@@ -4132,8 +4141,8 @@ void atm_cyclon() {
     b = 0;
 
     while (cr > 0) {
-        px = cx + cr * cos(a);
-        py = cy + cr * sin(a);
+        px = (uint16_t) (int32_t) ((double) cx + (double) cr * cos((double) a));
+        py = (uint16_t) (int32_t) ((double) cy + (double) cr * sin((double) a));
         py *= 360;
         cirrus();
         px += brtl_random(4);
