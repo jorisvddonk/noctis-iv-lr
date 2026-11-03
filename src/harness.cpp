@@ -220,7 +220,6 @@ static int alloc_buffers(void)
 	   40 bytes past the 64800-byte map. */
 	if (p_background) {
 		memset(p_background, 0, pl_bytes);
-		memset(p_background + 64800, 0xFF, pl_bytes - 64800);
 	}
 	s_background = (uint8_t *)malloc(st_bytes + 64);
 	/* lssmooth reads target[i+361] with i up to QUADWORDS*4-320, i.e. up to

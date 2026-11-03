@@ -3851,6 +3851,7 @@ void lssmooth(uint8_t *target) {
 
         uint8_t bl = target[i + 360] & 0x3Fu;
         uint8_t bh = target[i + 361] & 0x3Fu;
+        if (getenv("TAILP") && i >= 64437 && i <= 64441) fprintf(stderr, "TAIL i=%u t[i]=%d t[i+1]=%d t[i+360]=%d t[i+361]=%d\n", i, (int) target[i], (int) target[i+1], (int) target[i+360], (int) target[i+361]);
         if (i >= 64435 && i <= 64441 && getenv("LSTRACE")) fprintf(stderr, "LS i=%u t[i]=%d t[i+1]=%d t[i+360]=%d t[i+361]=%d\n", i, (int) target[i], (int) target[i+1], (int) target[i+360], (int) target[i+361]);
 
         uint8_t average = (dl + dh + bl + bh) / 4;
